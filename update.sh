@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# 1. Generate a Version Number (Year.Month.Day)
-# Example output: v2024.01.09
-VERSION="v$(date +'%Y.%m.%d')"
+# 1. Generate a Granular Version Number (Year.Month.Day.HourMinute)
+# Example output: v2024.01.09.1530 (3:30 PM)
+VERSION="v$(date +'%Y.%m.%d.%H%M')"
 
 echo "🚀 Starting build for TRISH version: $VERSION"
 
