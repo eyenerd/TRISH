@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Primary Meta Tags -->
+  <!-- TODO: Replace with your paper title and author names -->
+  <meta name="title" content="TRISH - AUTHOR_NAMES">
+  <!-- TODO: Write a compelling 150-160 character description of your research -->
+  <meta name="description" content="BRIEF_DESCRIPTION_OF_YOUR_RESEARCH_CONTRIBUTION_AND_FINDINGS">
+  <!-- TODO: Add 5-10 relevant keywords for your research area -->
+  <meta name="keywords" content="KEYWORD1, KEYWORD2, KEYWORD3, machine learning, computer vision, AI">
+  <!-- TODO: List all authors -->
+  <meta name="author" content="FIRST_AUTHOR_NAME, SECOND_AUTHOR_NAME">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <!-- TODO: Replace with your institution or lab name -->
+  <meta property="og:site_name" content="INSTITUTION_OR_LAB_NAME">
+  <!-- TODO: Same as paper title above -->
+  <meta property="og:title" content="PAPER_TITLE">
+  <!-- TODO: Same as description above -->
+  <meta property="og:description" content="BRIEF_DESCRIPTION_OF_YOUR_RESEARCH_CONTRIBUTION_AND_FINDINGS">
+  <!-- TODO: Replace with your actual website URL -->
+  <meta property="og:url" content="https://YOUR_DOMAIN.com/YOUR_PROJECT_PAGE">
+  <!-- TODO: Create a 1200x630px preview image and update path -->
+  <meta property="og:image" content="https://YOUR_DOMAIN.com/static/images/social_preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="PAPER_TITLE - Research Preview">
+  <meta property="article:published_time" content="2024-01-01T00:00:00.000Z">
+  <meta property="article:author" content="FIRST_AUTHOR_NAME">
+  <meta property="article:section" content="Research">
+  <meta property="article:tag" content="KEYWORD1">
+  <meta property="article:tag" content="KEYWORD2">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- TODO: Replace with your lab/institution Twitter handle -->
+  <meta name="twitter:site" content="@YOUR_TWITTER_HANDLE">
+  <!-- TODO: Replace with first author's Twitter handle -->
+  <meta name="twitter:creator" content="@AUTHOR_TWITTER_HANDLE">
+  <!-- TODO: Same as paper title above -->
+  <meta name="twitter:title" content="PAPER_TITLE">
+  <!-- TODO: Same as description above -->
+  <meta name="twitter:description" content="BRIEF_DESCRIPTION_OF_YOUR_RESEARCH_CONTRIBUTION_AND_FINDINGS">
+  <!-- TODO: Same as social preview image above -->
+  <meta name="twitter:image" content="https://YOUR_DOMAIN.com/static/images/social_preview.png">
+  <meta name="twitter:image:alt" content="PAPER_TITLE - Research Preview">
+
+  <!-- Academic/Research Specific -->
+  <meta name="citation_title" content="PAPER_TITLE">
+  <meta name="citation_author" content="FIRST_AUTHOR_LAST, FIRST_AUTHOR_FIRST">
+  <meta name="citation_author" content="SECOND_AUTHOR_LAST, SECOND_AUTHOR_FIRST">
+  <meta name="citation_publication_date" content="2024">
+  <meta name="citation_conference_title" content="CONFERENCE_NAME">
+  <meta name="citation_pdf_url" content="https://YOUR_DOMAIN.com/static/pdfs/paper.pdf">
+  
+  <!-- Additional SEO -->
+  <meta name="theme-color" content="#2563eb">
+  <meta name="msapplication-TileColor" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://ajax.googleapis.com">
+  <link rel="preconnect" href="https://documentcloud.adobe.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+
+  <!-- TODO: Replace with your paper title and authors -->
+  <title>TRISH</title>
+  
+  <!-- Favicon and App Icons -->
+  <link rel="icon" type="image/x-icon" href="static/images/TRISH.png">
+  <link rel="apple-touch-icon" href="static/images/TRISH.png">
+  
+  <!-- Critical CSS - Load synchronously -->
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <style>
+  /* Sticky header + first column table styles for TSV live view */
+  .tsv-table-wrap { overflow:auto; max-height:420px; }
+  table.tsv-table { border-collapse: collapse; width: 100%; }
+  table.tsv-table th, table.tsv-table td { border: 1px solid #e6e6e6; padding: 8px; vertical-align: top; background: white; }
+  /* Keep header text on a single line so header width defines column width */
+  table.tsv-table th { white-space: nowrap; position: sticky; top: 0; z-index: 4; background: #f8f8f8; border-right: 1px solid #cfcfcf; }
+  /* Sticky first column */
+  table.tsv-table th:first-child, table.tsv-table td:first-child { position: sticky; left: 0; z-index: 3; background: #fff; }
+  table.tsv-table th:first-child { z-index: 5; }
+  /* Allow body cells to wrap at word boundaries (do not split words) and limit cell width */
+  table.tsv-table td { white-space: normal; overflow-wrap: normal; word-break: normal; max-width: 300px; }
+  table.tsv-table th:first-child, table.tsv-table td:first-child { position: sticky; left: 0; z-index: 3; background: #f8f8f8; }
+  table.tsv-table th:first-child { z-index: 5; }
+  details.deck-details { margin-bottom: 1rem; border: 1px solid #e6e6e6; border-radius: 6px; padding: 0.5rem; }
+  details.deck-details summary { font-weight: 600; cursor: pointer; padding: 0.5rem; }
+  .deck-actions { margin: 0.5rem 0 1rem 0; }
+  </style>
+  
+  <!-- Non-critical CSS - Load asynchronously -->
+  <link rel="preload" href="static/css/bulma-carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/bulma-slider.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/fontawesome.all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- Fallback for browsers that don't support preload -->
+  <noscript>
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  </noscript>
+  
+  <!-- Fonts - Optimized loading -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Defer non-critical JavaScript -->
+  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/bulma-carousel.min.js"></script>
+  <script defer src="static/js/bulma-slider.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+</head>
+<body>
+
+
+  <!-- Scroll to Top Button -->
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main-content">
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <!-- TODO: Replace with your paper title -->
+            <h1 class="title is-1 publication-title">Totally-Rad Illness Script Hub</h1>
+            <div class="is-size-5 publication-authors">
+              <!-- TODO: Replace with your paper authors and their personal links -->
+              <span class="author-block">
+                <a href="mailto:murrx019@umn.edu" target="_blank">Austin Murr</a>
+                <br>MD Student
+                <br>University of Minnesota Medical School - Twin Cities
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Paper abstract -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <figure class="image is-128x128 is-inline-block" style="margin-top:0.75rem;">
+          <img src="static/images/TRISH.png" alt="TRISH logo">
+        </figure>
+        <h2 class="title is-3">About TRISH</h2>
+        <div class="content has-text-justified">
+          <!-- TODO: Replace with your paper abstract -->
+          <p>
+            <strong>TRISH</strong> <em>(Totally-Rad Illness Script Hub)</em> is one of my primary study tools. Perhaps the best study feature is that TRISH is able to turn illness scripts into Anki cards, complete with tags and text-to-speech.
+          </p>
+          <p>
+            As I create TRISH and update it, you will be able to refer to this page for the most up-to-date version. You can view the up-to-date spreadsheet online there, as well as download the updated Anki decks. I have built in a feature that allows you to add new cards and update old ones without losing your Anki SRS history.
+          </p>
+            <p>
+            Creation of the content is assissted by OpenEvidence. If you want to see the prompt I use, please refer to <a href="/oe_prompt.txt" target="_blank" rel="noopener noreferrer" class="has-text-link">oe_prompt.txt</a>. If you use this prompt yourself, note that OpenEvidence seems to max out with about 6 conditions at a time.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End paper abstract -->
+
+<!-- TRISH Decks: collapsible sections with download + TSV live view -->
+  <section class="section" id="trish-decks">
+    <div class="container is-max-desktop content">
+      <h2 class="title">TRISH Decks</h2>
+      <div id="decks-container">
+        <!-- JS will populate collapsible deck details here -->
+      </div>
+    </div>
+  </section>
+
+  <script>
+  (function(){
+    const categories = [
+      {key: 'Fundamentals', apkg: 'Fundamentals.apkg', tsv: 'fundamentals.tsv', title: 'Fundamentals'},
+      {key: 'Skin', apkg: 'Skin.apkg', tsv: 'skin.tsv', title: 'Skin'},
+      {key: 'MSK', apkg: 'MSK.apkg', tsv: 'msk.tsv', title: 'Musculoskeletal System'},
+      {key: 'NSHB', apkg: 'NSHB.apkg', tsv: 'nshb.tsv', title: 'Nervous System & Human Behavior'},
+      {key: 'Cardio', apkg: 'Cardio.apkg', tsv: 'cardio.tsv', title: 'Cardiovascular System'},
+      {key: 'Resp', apkg: 'Resp.apkg', tsv: 'resp.tsv', title: 'Respiratory System'},
+      {key: 'Renal', apkg: 'Renal.apkg', tsv: 'renal.tsv', title: 'Renal System'},
+      {key: 'EndoRepro', apkg: 'EndoRepro.apkg', tsv: 'endorepro.tsv', title: 'Endocrine & Reproductive System'},
+      {key: 'Heme', apkg: 'Heme.apkg', tsv: 'heme.tsv', title: 'Hematology'},
+      {key: 'GI', apkg: 'GI.apkg', tsv: 'gi.tsv', title: 'Gastrointestinal System'}
+    ];
+
+    const container = document.getElementById('decks-container');
+
+    function makeTableFromTSV(text){
+      const raw = text.replace(/\r/g,'').trim();
+      if(!raw) {
+        const emptyTable = document.createElement('table');
+        emptyTable.className = 'tsv-table';
+        return emptyTable;
+      }
+      const rows = raw.split('\n').map(r => r.split('\t'));
+      // normalize header: remove BOM and trim cells
+      let header = rows[0].map(h => (h || '').replace(/^\uFEFF/, '').trim());
+      // remove trailing empty header columns (these caused the extra 16 columns)
+      while(header.length > 1 && header[header.length - 1] === '') header.pop();
+      const colCount = header.length;
+      // detect index of "More Info" column (case-insensitive, allow small variations)
+      const moreInfoIdx = header.findIndex(h => {
+        if(!h) return false;
+        const s = h.toString().toLowerCase().trim();
+        return s === 'more info' || s === 'more_info' || s === 'moreinfo' || s.includes('more info');
+      });
+
+      const table = document.createElement('table');
+      table.className = 'tsv-table';
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+
+      // header
+      const headerRow = document.createElement('tr');
+      header.forEach((h) => {
+        const th = document.createElement('th');
+        th.textContent = h || '';
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      // body: ensure each row has exactly colCount cells (truncate or pad)
+      for(let r=1; r<rows.length; r++){
+        const tr = document.createElement('tr');
+        let cells = rows[r].map(c => (c||'').trim());
+        if(cells.length > colCount) cells = cells.slice(0, colCount);
+        else if(cells.length < colCount) cells = cells.concat(Array(colCount - cells.length).fill(''));
+        for(let i=0;i<colCount;i++){
+          const td = document.createElement('td');
+          const cellText = cells[i] || '';
+          if(i === moreInfoIdx && cellText) {
+            const a = document.createElement('a');
+            a.href = cellText;
+            a.textContent = 'More Info';
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            td.appendChild(a);
+          } else {
+            td.textContent = cellText;
+          }
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      return table;
+    }
+
+    categories.forEach(cat => {
+      const details = document.createElement('details');
+      details.className = 'deck-details';
+      const summary = document.createElement('summary');
+      summary.textContent = cat.title || cat.key;
+      details.appendChild(summary);
+
+      const actions = document.createElement('div');
+      actions.className = 'deck-actions buttons';
+      
+      const dl_anki = document.createElement('a');
+      dl_anki.className = 'button is-small is-info';
+      dl_anki.textContent = 'Download Anki Deck (.apkg)';
+      dl_anki.href = 'TRISH_Anki/' + cat.apkg;
+      dl_anki.setAttribute('download', '');
+      dl_anki.target = '_blank';
+      actions.appendChild(dl_anki);
+
+      const dl_tsv = document.createElement('a');
+      dl_tsv.className = 'button is-small is-success';
+      dl_tsv.textContent = 'Download Spreadsheet (.tsv)';
+      dl_tsv.href = 'TRISH_Sheets/tsv/' + cat.tsv;
+      dl_tsv.setAttribute('download', '');
+      dl_tsv.target = '_blank';
+      actions.appendChild(dl_tsv);
+
+      details.appendChild(actions);
+
+      const tableWrap = document.createElement('div');
+      tableWrap.className = 'tsv-table-wrap';
+      tableWrap.textContent = 'Loading table...';
+      details.appendChild(tableWrap);
+
+      container.appendChild(details);
+
+      // fetch TSV
+      fetch('TRISH_Sheets/tsv/' + cat.tsv).then(r => {
+        if(!r.ok) throw new Error('Not found');
+        return r.text();
+      }).then(txt => {
+        tableWrap.textContent = '';
+        const table = makeTableFromTSV(txt);
+        tableWrap.appendChild(table);
+      }).catch(err => {
+        tableWrap.textContent = 'TSV not available: ' + err.message;
+      });
+    });
+  })();
+  </script>
+
+
+  <footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+
+          <p>
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Statcounter tracking code -->
+  
+<!-- You can add a tracker to track page visits by creating an account at statcounter.com -->
+
+    <!-- End of Statcounter Code -->
+
+  </body>
+  </html>
