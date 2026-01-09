@@ -1,0 +1,10 @@
+Create a table with the following columns:
+
+Condition	USMLE Classic Presentation	Pathophysiology	Epidemiology	Salient Signs & Symptoms	Time Course	Differential	Diagnostics	Treatment	Never Miss	More Info
+
+For the "Never Miss" column: Y for "must-not-miss" or N for "important but not immediately catastrophic if delayed," based on urgency and potential for severe, irreversible harm if missed; be judicious in your assignment. For the "More Info" column: please provide the hyperlink to one trusted resource to learn more about this condition (please do not use HTML tags to link). Do not add citations for content within any other column; if you must include references and citations, please include that OUTSIDE the table. For the "USMLE Classic Presentation" column, use any common "buzzwords" or memory devices.
+
+Your audience is a medical student constructing illness scripts and a schema for treating illnesses. The student is studying for USMLE Step 1 & Step 2 CK. Be concise. Do not use html inside the table content. Please avoid acronyms as well as symbols that are not text-to-speech friendly. Please output immediately without prompts for intermediate steps.
+
+Do this for the following conditions: 
+
