@@ -66,6 +66,14 @@
   details.deck-details { margin-bottom: 1rem; border: 1px solid #e6e6e6; border-radius: 6px; padding: 0.5rem; }
   details.deck-details summary { font-weight: 600; cursor: pointer; padding: 0.5rem; }
   .deck-actions { margin: 0.5rem 0 1rem 0; }
+  /* Anki filter controls: keep on a single line, prevent overflow */
+  .deck-filter-controls { display:flex; align-items:center; gap:0.5rem; flex-wrap:nowrap; }
+  .deck-filter-controls select.input { min-width:160px; max-width:360px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .deck-filter-controls .button { white-space:nowrap; }
+  @media (max-width:640px) {
+    .deck-filter-controls { flex-direction:column; align-items:flex-start; gap:0.25rem; }
+    .deck-filter-controls select.input { width:100%; }
+  }
   </style>
   
   <!-- Non-critical CSS - Load asynchronously -->
@@ -268,6 +276,14 @@
       return table;
     }
 
+    // Helper: create a stable tag from a string (mirrors Python clean_tag)
+    function jsCleanTag(s){
+      if (s === "USMLE Classic Presentation"){
+        return "Presentation";
+      }
+      return (s||'').toString().trim().replace(/&/g,'and').replace(/\s+/g,'_');
+    }
+
     categories.forEach(cat => {
       const details = document.createElement('details');
       details.className = 'deck-details has-background-white';
@@ -304,6 +320,19 @@
         }
       });
       actions.appendChild(searchInput);
+      // Column selector and copy button will be shown in a separate "Anki Filters" control below
+      const colSelect = document.createElement('select');
+      colSelect.className = 'input is-small';
+      colSelect.style.marginLeft = '0.5rem';
+      colSelect.disabled = true;
+      const defaultOpt = document.createElement('option'); defaultOpt.value = 'ALL'; defaultOpt.textContent = 'All Columns'; colSelect.appendChild(defaultOpt);
+
+      // Copy Anki filter button (created but not appended here)
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'button is-small is-info';
+      copyBtn.textContent = 'Copy Anki Filter';
+      copyBtn.style.marginLeft = '0.5rem';
+      copyBtn.disabled = true;
             
       // const dl_anki = document.createElement('a');
       // dl_anki.className = 'button is-small is-info';
@@ -314,6 +343,21 @@
       // actions.appendChild(dl_anki);
 
       details.appendChild(actions);
+
+      // Create a separate control area for Anki Filters (separate from condition search)
+      const filterDiv = document.createElement('div');
+      filterDiv.className = 'deck-filter-controls has-background-light';
+      filterDiv.style.padding = '0.5rem';
+      filterDiv.style.margin = '0.5rem 0';
+      const filterLabel = document.createElement('span');
+      filterLabel.style.fontWeight = '600';
+      filterLabel.style.marginRight = '0.5rem';
+      filterLabel.textContent = 'Anki Filters:';
+      filterDiv.appendChild(filterLabel);
+      // show friendly dropdown (will be populated after TSV loads)
+      filterDiv.appendChild(colSelect);
+      filterDiv.appendChild(copyBtn);
+      details.appendChild(filterDiv);
 
       const tableWrap = document.createElement('div');
       tableWrap.className = 'tsv-table-wrap';
@@ -328,6 +372,60 @@
         return r.text();
       }).then(txt => {
         tableWrap.textContent = '';
+
+        // Parse header to populate column selector (mirror of makeTableFromTSV header logic)
+        const raw = txt.replace(/\r/g,'').trim();
+        const rows = raw.split('\n').map(r => r.split('\t'));
+        let header = rows[0].map(h => (h || '').replace(/^\uFEFF/, '').trim());
+        while(header.length > 1 && header[header.length - 1] === '') header.pop();
+
+        // Populate select with column names (exclude primary and meta columns)
+        // We'll include all columns except the first and columns that look like 'Never Miss' or 'More Info'
+        const primary = header[0] || '';
+        header.forEach((colName) => {
+          if(!colName) return;
+          const lower = colName.toString().toLowerCase().trim();
+          if(colName === primary) return;
+          if(lower === 'never miss' || lower === 'more info' || lower === 'more_info' || lower === 'moreinfo') return;
+          const opt = document.createElement('option');
+          opt.value = jsCleanTag(colName);
+          // show compact cleaned tag, full column name available on hover
+          opt.textContent = colName;
+          opt.title = colName;
+          colSelect.appendChild(opt);
+        });
+        if(colSelect.options.length > 1){ // has additional columns
+          colSelect.disabled = false;
+        }
+
+        // Enable copy button and attach handler
+        copyBtn.disabled = false;
+        const blockTagName = (cat.tsv || '').split('.')[0].toUpperCase();
+        copyBtn.addEventListener('click', function(){
+          const blockTag = `TRISH::Blocks::${jsCleanTag(blockTagName)}`;
+          const col = colSelect.value || 'ALL';
+          let filter = '';
+          if(col === 'ALL'){
+            filter = `tag:${blockTag}`;
+          } else {
+            const colTag = `TRISH::${jsCleanTag(col)}`;
+            filter = `tag:${blockTag} tag:${colTag}`;
+          }
+          // Copy to clipboard
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(filter).then(()=>{
+              const prev = copyBtn.textContent;
+              copyBtn.textContent = 'Copied!';
+              setTimeout(()=> copyBtn.textContent = prev, 1500);
+            }).catch(()=>{
+              alert('Copy failed — here is the filter:\n' + filter);
+            });
+          } else {
+            // Fallback
+            prompt('Copy this Anki search filter:', filter);
+          }
+        });
+
         const table = makeTableFromTSV(txt);
         tableWrap.appendChild(table);
       }).catch(err => {
