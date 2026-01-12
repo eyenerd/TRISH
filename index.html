@@ -285,6 +285,25 @@
       dl_tsv.setAttribute('download', '');
       dl_tsv.target = '_blank';
       actions.appendChild(dl_tsv);
+      // per-deck first-column search input
+      const searchInput = document.createElement('input');
+      searchInput.type = 'search';
+      searchInput.className = 'input is-small';
+      searchInput.placeholder = 'Search first column';
+      searchInput.style.marginLeft = '0.5rem';
+      searchInput.addEventListener('input', function(e){
+        const q = (e.target.value || '').trim().toLowerCase();
+        const table = details.querySelector('table.tsv-table');
+        if(!table) return;
+        const body = table.tBodies[0];
+        if(!body) return;
+        for(let r=0;r<body.rows.length;r++){
+          const cell = body.rows[r].cells[0];
+          const text = cell ? (cell.textContent || '').trim().toLowerCase() : '';
+          body.rows[r].style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+        }
+      });
+      actions.appendChild(searchInput);
             
       // const dl_anki = document.createElement('a');
       // dl_anki.className = 'button is-small is-info';
