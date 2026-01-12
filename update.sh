@@ -42,6 +42,8 @@ s=re.sub(r'(>Download TRISH)[^<]*(</span>)', r"\1 "+v+r"\2", s)
 # Replace Anki download href and download attribute to point to versioned filename
 s=re.sub(r'href=["\']TRISH_Anki/[^"\']*TRISH[^"\']*\.apkg["\']', 'href="TRISH_Anki/TRISH_'+v+'.apkg"', s)
 s=re.sub(r'download=["\'][^"\']*["\']', 'download="TRISH_'+v+'.apkg"', s)
+# Replace version label inside the download button (span.version-label)
+s=re.sub(r'(<span[^>]*class=["\']version-label["\'][^>]*>)[^<]*(</span>)', r"\1"+v+r"\2", s, flags=re.IGNORECASE)
 with io.open(fn,'w',encoding='utf-8') as f:
     f.write(s)
 print('updated')
