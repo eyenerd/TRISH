@@ -27,45 +27,92 @@ def clean_for_tts(text):
     text = re.sub('<[^<]+?>', '', text)
     return text.strip()
 
+def clean_tag(txt):
+    return txt.strip().replace(" ", "_").replace("&", "and")
+
 def main():
     # 1. Setup CLI Argument Parser
-    parser = argparse.ArgumentParser(description="Convert TSV to Anki with Full Sentence TTS.")
+    parser = argparse.ArgumentParser(description="Convert multiple TSVs to a single Unified Anki Deck.")
     
-    parser.add_argument('-i', '--input', required=True, help="Path to input TSV")
-    parser.add_argument('-d', '--deck-name', required=True, help="Name of the Anki Deck")
+    # CHANGED: Accept multiple input files using nargs='+'
+    parser.add_argument('-i', '--input', required=True, nargs='+', help="List of input TSV files")
+    
+    # CHANGED: Default deck name is 'TRISH', but can be overridden
+    parser.add_argument('-d', '--deck-name', default="TRISH", help="Name of the Anki Deck")
     parser.add_argument('-o', '--output', help="Output filename")
-    parser.add_argument('-v', '--voice', default="Apple_Evan_(Enhanced)", help="Preferred TTS voice. Defaults to Apple Evan.")
+    parser.add_argument('-v', '--voice', default="Apple_Evan_(Enhanced)", help="Preferred TTS voice.")
     parser.add_argument('-t', '--tag', default="Unknown", help="Version string (e.g., v2024.01.09)")
 
     args = parser.parse_args()
 
-    # 2. File Setup
-    input_file = args.input
+    # 2. Setup Variables
     deck_title = args.deck_name
     
     if args.output:
         output_file = args.output
     else:
+        # Default output name
         safe_name = "".join([c if c.isalnum() else "_" for c in deck_title])
         output_file = f"{safe_name}.apkg"
 
-    if not os.path.exists(input_file):
-        print(f"Error: File '{input_file}' not found.")
-        sys.exit(1)
+    # --- 3. Load, Merge, and Deduplicate Data ---
+    print(f"📦 Loading {len(args.input)} files for Unified Deck '{deck_title}'...")
 
-    try:
-        df = pd.read_csv(input_file, sep='\t').fillna('')
-    except Exception as e:
-        print(f"Error reading TSV: {e}")
-        sys.exit(1)
+    # Dictionary to store unique conditions
+    # Key: Condition name (lowercase)
+    # Value: { 'row': pandas Series, 'blocks': set of strings }
+    merged_data = {}
+    
+    # Keep track of column structure from the first valid file
+    columns = None
 
-    print(f"Loaded {len(df)} rows. Generating deck '{deck_title}' (Version: {args.tag})...")
+    for filepath in args.input:
+        if not os.path.exists(filepath):
+            print(f"⚠️ Warning: File '{filepath}' not found. Skipping.")
+            continue
+            
+        # Extract Block Name from filename (e.g., "msk.tsv" -> "MSK")
+        filename = os.path.basename(filepath)
+        block_name = os.path.splitext(filename)[0].upper() # e.g., MSK, CARDIO
+        
+        try:
+            df = pd.read_csv(filepath, sep='\t').fillna('')
+        except Exception as e:
+            print(f"❌ Error reading {filepath}: {e}")
+            continue
 
-    # 3. Handle 'Never Miss'
-    if 'Never Miss' in df.columns:
-        df['Never Miss'] = df['Never Miss'].apply(
-            lambda x: str(x).strip() if str(x).strip().startswith('Y') else ''
-        )
+        if columns is None and not df.empty:
+            columns = df.columns
+        
+        if df.empty:
+            continue
+
+        primary_col = df.columns[0] # Assumes "Condition" is the first column
+
+        for _, row in df.iterrows():
+            condition_raw = str(row[primary_col]).strip()
+            if not condition_raw: 
+                continue
+                
+            condition_key = condition_raw.lower()
+            
+            if condition_key not in merged_data:
+                # First time seeing this condition: Save row data and start block set
+                merged_data[condition_key] = {
+                    'row': row,
+                    'blocks': {block_name} 
+                }
+            else:
+                # Duplicate found! We keep the existing data, but add the new block tag
+                merged_data[condition_key]['blocks'].add(block_name)
+
+    unique_count = len(merged_data)
+    print(f"✅ Processed {unique_count} unique conditions (deduplicated).")
+    print(f"🔨 Generating deck '{deck_title}' (Version: {args.tag})...")
+
+    if unique_count == 0 or columns is None:
+        print("❌ No data found. Exiting.")
+        return
 
     # 4. Construct Voice List
     user_voice = args.voice.replace(" ", "_")
@@ -73,9 +120,9 @@ def main():
     voice_list_arr = [user_voice] + [v for v in fallbacks if v != user_voice]
     voice_string = ",".join(voice_list_arr)
 
-    # 5. Define Anki Model (Granular)
-    # Updated to v3 to include the new 'MoreInfo' field
-    model_id = get_stable_id(f"{deck_title}_Granular_TTS_v3")
+    # 5. Define Anki Model
+    # We use a stable ID based on the Unified Deck Name
+    model_id = get_stable_id(f"{deck_title}_Unified_Model_v4")
     
     css = """
         .card { font-family: arial; font-size: 20px; text-align: center; color: black; background-color: white; }
@@ -84,18 +131,20 @@ def main():
         .warning { color: red; font-weight: bold; font-size: 16px; border: 2px solid red; padding: 10px; margin-top: 15px; display: inline-block;}
         .more-info { margin-top: 15px; font-size: 16px; }
         .more-info a { color: #007bff; text-decoration: none; font-weight: bold; }
+        .tags-display { font-size: 12px; color: #aaa; margin-top: 30px; font-style: italic; }
     """
 
     my_model = genanki.Model(
         model_id,
-        f'{deck_title} TTS Model v3',
+        f'{deck_title} TTS Model v4',
         fields=[
-            {'name': 'Question_Display'}, # 1. HTML for the screen
-            {'name': 'Answer_Display'},   # 2. HTML for the screen
-            {'name': 'Question_TTS'},     # 3. Plain text full sentence for Audio
-            {'name': 'Answer_TTS'},       # 4. Plain text answer for Audio
-            {'name': 'NeverMiss'},        # 5. Never Miss Flag
-            {'name': 'MoreInfo'},         # 6. More Info URL
+            {'name': 'Question_Display'}, 
+            {'name': 'Answer_Display'},   
+            {'name': 'Question_TTS'},     
+            {'name': 'Answer_TTS'},       
+            {'name': 'NeverMiss'},        
+            {'name': 'MoreInfo'},
+            {'name': 'BlockTags'}, # Added field to potentially display tags on card
         ],
         templates=[
             {
@@ -116,6 +165,8 @@ def main():
                             <a href="{{MoreInfo}}">📖 Read More</a>
                         </div>
                     {{/MoreInfo}}
+                    
+                    <div class='tags-display'>{{BlockTags}}</div>
 
                     <div style="display:none">{{tts en_US voices=%s:Answer_TTS}}</div>
                 ''' % voice_string,
@@ -127,46 +178,51 @@ def main():
     deck_id = get_stable_id(deck_title)
     my_deck = genanki.Deck(deck_id, deck_title)
     
-    # Tag Helper
-    def clean_tag(txt):
-        return txt.strip().replace(" ", "_").replace("&", "and")
-    base_tag = f"TRISH::Blocks::{clean_tag(deck_title)}"
+    base_tag_prefix = f"TRISH"
 
-    # --- NEW: Add a "Version/Info" Note ---
-    # This creates a special card to track versioning inside Anki
+    # --- Add Version Info Note ---
     print(f"Embedding version info: {args.tag}")
-    info_guid = genanki.guid_for("DECK_INFO_CARD", deck_title) # Stable ID for this specific card
+    info_guid = genanki.guid_for("DECK_INFO_CARD", deck_title)
     
     info_note = genanki.Note(
         model=my_model,
         fields=[
-            f"<b>{deck_title}</b><br>Version Information",          # 1. Question_Display
-            f"Last Updated: <b>{args.tag}</b><br><br>Check for updates regularly.", # 2. Answer_Display
-            "Deck Version Information",                              # 3. Question_TTS
-            f"Updated to version {args.tag}",                        # 4. Answer_TTS
-            "",                                                      # 5. NeverMiss (Empty)
-            ""                                                       # 6. MoreInfo (Empty)
+            f"<b>{deck_title}</b><br>Version Information",
+            f"Last Updated: <b>{args.tag}</b><br>Unique Conditions: {unique_count}<br><br>Check for updates regularly.",
+            "Deck Version Information",
+            f"Updated to version {args.tag}",
+            "",
+            "",
+            ""
         ],
-        tags=[f"TRISH::MetaData"],
+        tags=[f"{base_tag_prefix}::MetaData"],
         guid=info_guid
     )
     my_deck.add_note(info_note)
 
-    # 6. Generate Notes
-    primary_col = df.columns[0] # Condition
+    # 6. Generate Notes from Merged Data
+    primary_col = columns[0] # Condition
 
-    for _, row in df.iterrows():
-        condition = str(row[primary_col])
-        never_miss = str(row['Never Miss']) if 'Never Miss' in df.columns else ''
+    for condition_key, data in merged_data.items():
+        row = data['row']
+        blocks = data['blocks'] # Set of blocks this condition belongs to
         
-        # Extract More Info URL (if column exists)
-        more_info_url = str(row['More Info']) if 'More Info' in df.columns else ''
-        # If it was empty/NaN in pandas, ensure it's an empty string
+        condition = str(row[primary_col])
+        never_miss = str(row['Never Miss']) if 'Never Miss' in row else ''
+        
+        # Extract More Info URL
+        more_info_url = str(row['More Info']) if 'More Info' in row else ''
         if not more_info_url.strip():
             more_info_url = ''
 
-        for col in df.columns:
-            # Skip primary key, Never Miss, AND More Info (don't make cards for the link itself)
+        # Prepare Block Tags
+        # e.g., ["TRISH::Blocks::MSK", "TRISH::Blocks::Fundamentals"]
+        block_tags_list = [f"{base_tag_prefix}::Blocks::{clean_tag(b)}" for b in sorted(blocks)]
+        
+        # String to display on the back of card (optional)
+        block_display_str = ", ".join(sorted(blocks))
+
+        for col in columns:
             if col == primary_col or col == "Never Miss" or col == "More Info":
                 continue
 
@@ -175,65 +231,51 @@ def main():
                 continue
 
             # --- Logic for Prompts & Text ---
-            
-            # 1. Determine the "Prompt" text
             if col == "Salient Signs & Symptoms":
-                prompt_html = "What are the <u>Salient Signs & Symptoms</u> of"
-                prompt_text = "What are the Salient Signs and Symptoms of"
+                prompt_html, prompt_text = "What are the <u>Salient Signs & Symptoms</u> of", "What are the Salient Signs and Symptoms of"
             elif col == "Diagnostics":
-                prompt_html = "How would you <u>Diagnose</u>"
-                prompt_text = "How would you Diagnose"
+                prompt_html, prompt_text = "How would you <u>Diagnose</u>", "How would you Diagnose"
             elif col == "USMLE Classic Presentation":
-                prompt_html = "What <u>condition</u> presents as:"
-                prompt_text = "What condition presents as"
+                prompt_html, prompt_text = "What <u>condition</u> presents as:", "What condition presents as"
             else:
-                prompt_html = f"What is the <u>{col}</u> of"
-                prompt_text = f"What is the {col} of"
+                prompt_html, prompt_text = f"What is the <u>{col}</u> of", f"What is the {col} of"
 
-            # 2. Prepare Display Fields (HTML Safe)
             val_display = html.escape(val).replace('\n', '<br>')
             cond_display = html.escape(condition)
-
-            # 3. Prepare TTS Fields (Plain Text, Full Sentences)
             val_tts = clean_for_tts(val)
             cond_tts = clean_for_tts(condition)
 
-            tags = [f"{base_tag}", f"TRISH::Conditions::{clean_tag(condition)}"]
+            # Apply Base Tags + Condition Tag + All Block Tags
+            current_tags = block_tags_list.copy()
+            current_tags.append(f"{base_tag_prefix}::Conditions::{clean_tag(condition)}")
 
             if col == "USMLE Classic Presentation":
                 # REVERSED CARD
-                # Front: Presentation -> Back: Condition
-                
-                # Display
                 q_disp = f"<div class='label'>{prompt_html}</div><br>{val_display}"
                 a_disp = cond_display
-                
-                # TTS
                 q_tts = f"{prompt_text}: {val_tts}"
                 a_tts = cond_tts
                 
-                guid = genanki.guid_for(condition, "Presentation")
-                tags.append(f"TRISH::Presentation")
+                # GUID: Uses DeckTitle + Condition + "Presentation". 
+                # This ensures uniqueness within the Unified deck.
+                guid = genanki.guid_for(deck_title, condition, "Presentation")
+                current_tags.append(f"{base_tag_prefix}::Presentation")
 
             else:
                 # FORWARD CARD
-                # Front: Condition -> Back: Detail
-                
-                # Display
                 q_disp = f"<div class='label'>{prompt_html}</div><br>{cond_display}"
                 a_disp = val_display
-
-                # TTS
                 q_tts = f"{prompt_text} {cond_tts}?"
                 a_tts = val_tts
 
-                guid = genanki.guid_for(condition, col)
-                tags.append(f"TRISH::{clean_tag(col)}")
+                # GUID: Uses DeckTitle + Condition + Col
+                guid = genanki.guid_for(deck_title, condition, col)
+                current_tags.append(f"{base_tag_prefix}::{clean_tag(col)}")
 
-            if never_miss:
-                tags.append(f"TRISH::Never_Miss")
+            if never_miss and never_miss.strip().startswith('Y'):
+                current_tags.append(f"{base_tag_prefix}::Never_Miss")
 
-            # 4. Create Note (Added more_info_url to fields)
+            # Create Note
             note = genanki.Note(
                 model=my_model,
                 fields=[
@@ -242,9 +284,10 @@ def main():
                     q_tts, 
                     a_tts, 
                     never_miss,
-                    more_info_url # <--- New Field Data
+                    more_info_url,
+                    block_display_str # <--- Tags/Block info displayed on back
                 ],
-                tags=tags,
+                tags=current_tags,
                 guid=guid
             )
             my_deck.add_note(note)
@@ -252,7 +295,7 @@ def main():
     # 7. Export
     genanki.Package(my_deck).write_to_file(output_file)
     print(f"Voice: {voice_string.split(',')[0]} (plus fallbacks)")
-    print(f"Success! Deck saved to: {output_file}")
+    print(f"Success! Unified Deck saved to: {output_file}")
 
 if __name__ == "__main__":
     main()

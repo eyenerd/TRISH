@@ -25,6 +25,8 @@
 
   <!-- Additional SEO -->
   <meta name="theme-color" content="#2563eb">
+  <!-- TRISH build/version placeholder -->
+  <meta name="trish-version" content="v2026.01.12.1004">
   <meta name="msapplication-TileColor" content="#2563eb">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -149,10 +151,26 @@
 </section>
 <!-- End paper abstract -->
 
-<!-- TRISH Decks: collapsible sections with download + TSV live view -->
-  <section class="section" id="trish-decks">
+<!-- Download TRISH Anki Deck -->
+  <section class="section" id="anki-download">
+    <div class="container is-max-desktop content has-text-centered">
+      <h2 class="title">Download TRISH Anki Deck (.apkg)</h2>
+      <div style="display:inline-flex;align-items:center;gap:0.75rem;">
+        <a id="anki-download-btn" class="button is-large is-info" href="TRISH_Anki/TRISH_v2026.01.12.1004.apkg" download="TRISH_v2026.01.12.1004.apkg" target="_blank" rel="noopener noreferrer">
+          <span class="icon" style="margin-right:0.5rem;">
+            <!-- Anki SVG icon -->
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3d/Anki-icon.svg">
+          </span>
+          <span class="version-label">TRISH v2026.01.12.0950</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRISH Decks: collapsible sections with download + TSV live view -->
+  <section class="section has-background-light" id="trish-decks">
     <div class="container is-max-desktop content">
-      <h2 class="title">TRISH Decks</h2>
+      <h2 class="title has-text-centered">TRISH Decks</h2>
       <div id="decks-container">
         <!-- JS will populate collapsible deck details here -->
       </div>
@@ -162,7 +180,7 @@
   <script>
   (function(){
     const categories = [
-      {key: 'Fundamentals', apkg: 'Fundamentals.apkg', tsv: 'fundamentals.tsv', title: 'Fundamentals'},
+      {key: 'Fund', apkg: 'Fund.apkg', tsv: 'fund.tsv', title: 'Fundamentals'},
       {key: 'Skin', apkg: 'Skin.apkg', tsv: 'skin.tsv', title: 'Skin'},
       {key: 'MSK', apkg: 'MSK.apkg', tsv: 'msk.tsv', title: 'Musculoskeletal System'},
       {key: 'NSHB', apkg: 'NSHB.apkg', tsv: 'nshb.tsv', title: 'Nervous System & Human Behavior'},
@@ -175,6 +193,18 @@
     ];
 
     const container = document.getElementById('decks-container');
+
+    // Single global Anki deck download (one .apkg for the whole repo)
+    // const globalAnkiDiv = document.createElement('div');
+    // globalAnkiDiv.className = 'deck-actions';
+    // const globalAnkiBtn = document.createElement('a');
+    // globalAnkiBtn.className = 'button is-medium is-info';
+    // globalAnkiBtn.textContent = 'Download TRISH Anki Deck (.apkg)';
+    // globalAnkiBtn.href = 'TRISH_Anki/TRISH.apkg';
+    // globalAnkiBtn.setAttribute('download', '');
+    // globalAnkiBtn.target = '_blank';
+    // globalAnkiDiv.appendChild(globalAnkiBtn);
+    // container.appendChild(globalAnkiDiv);
 
     function makeTableFromTSV(text){
       const raw = text.replace(/\r/g,'').trim();
@@ -240,29 +270,29 @@
 
     categories.forEach(cat => {
       const details = document.createElement('details');
-      details.className = 'deck-details';
+      details.className = 'deck-details has-background-white';
       const summary = document.createElement('summary');
       summary.textContent = cat.title || cat.key;
       details.appendChild(summary);
 
       const actions = document.createElement('div');
       actions.className = 'deck-actions buttons';
-      
-      const dl_anki = document.createElement('a');
-      dl_anki.className = 'button is-small is-info';
-      dl_anki.textContent = 'Download Anki Deck (.apkg)';
-      dl_anki.href = 'TRISH_Anki/' + cat.apkg;
-      dl_anki.setAttribute('download', '');
-      dl_anki.target = '_blank';
-      actions.appendChild(dl_anki);
 
       const dl_tsv = document.createElement('a');
       dl_tsv.className = 'button is-small is-success';
       dl_tsv.textContent = 'Download Spreadsheet (.tsv)';
-      dl_tsv.href = 'TRISH_Sheets/tsv/' + cat.tsv;
+      dl_tsv.href = 'TRISH_Sheets/' + cat.tsv;
       dl_tsv.setAttribute('download', '');
       dl_tsv.target = '_blank';
       actions.appendChild(dl_tsv);
+            
+      // const dl_anki = document.createElement('a');
+      // dl_anki.className = 'button is-small is-info';
+      // dl_anki.textContent = 'Download Anki Deck (.apkg)';
+      // dl_anki.href = 'TRISH_Anki/' + cat.apkg;
+      // dl_anki.setAttribute('download', '');
+      // dl_anki.target = '_blank';
+      // actions.appendChild(dl_anki);
 
       details.appendChild(actions);
 
@@ -274,7 +304,7 @@
       container.appendChild(details);
 
       // fetch TSV
-      fetch('TRISH_Sheets/tsv/' + cat.tsv).then(r => {
+      fetch('TRISH_Sheets/' + cat.tsv).then(r => {
         if(!r.ok) throw new Error('Not found');
         return r.text();
       }).then(txt => {
@@ -286,6 +316,29 @@
       });
     });
   })();
+  </script>
+
+  <script>
+  function setAnkiVersion(v){
+    const btn = document.getElementById('anki-download-btn');
+    if(!btn) return;
+    btn.href = 'TRISH_Anki/TRISH_' + v + '.apkg';
+    btn.setAttribute('download','TRISH_' + v + '.apkg');
+    const label = btn.querySelector('.version-label');
+    if(label) label.textContent = 'TRISH ' + v;
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    const sel = document.getElementById('anki-version-select');
+    if(!sel) return;
+    sel.addEventListener('change', function(e){ setAnkiVersion(e.target.value); });
+    // Initialize to selected option or meta tag
+    const initial = sel.value || (document.querySelector('meta[name="trish-version"]') || {}).content || 'v2026.01.12.0950';
+    // If no options are populated yet, create one with current meta
+    if(!sel.querySelector('option')){
+      const opt = document.createElement('option'); opt.value = initial; opt.textContent = initial; opt.selected = true; sel.appendChild(opt);
+    }
+    setAnkiVersion(sel.value || initial);
+  });
   </script>
 
   <section class="section">
@@ -304,8 +357,10 @@
       <div class="column is-8">
         <div class="content">
 
+          <p class="is-size-7 has-text-right">Version: <span id="trish-version">v2026.01.12.1004</span></p>
+
           <p>
-            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
             You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
             Commons Attribution-ShareAlike 4.0 International License</a>.
           </p>
