@@ -1,0 +1,32 @@
+name: discord message
+on: [push]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Get the latest tag reachable from main
+      - name: Fetch tags
+        run: git fetch --prune --unshallow --tags || git fetch --prune --tags
+
+      - name: Latest tag on main
+        id: latest_tag
+        run: |
+          # ensure main exists locally
+          git fetch origin main:refs/remotes/origin/main || true
+          # find the most recent tag that is an ancestor of origin/main
+          TAG=$(git tag --merged origin/main --sort=-creatordate | head -n1)
+          if [ -z "$TAG" ]; then
+            # fallback: most recent tag overall
+            TAG=$(git tag --sort=-creatordate | head -n1)
+          fi
+          echo "latest_tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: send custom message
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+          message: TRISH version ${{ steps.latest_tag.outputs.latest_tag }} is now available at https://eyenerd.github.io/TRISH/
