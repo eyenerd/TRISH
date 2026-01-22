@@ -34,10 +34,7 @@ def main():
     # 1. Setup CLI Argument Parser
     parser = argparse.ArgumentParser(description="Convert multiple TSVs to a single Unified Anki Deck.")
     
-    # CHANGED: Accept multiple input files using nargs='+'
     parser.add_argument('-i', '--input', required=True, nargs='+', help="List of input TSV files")
-    
-    # CHANGED: Default deck name is 'TRISH', but can be overridden
     parser.add_argument('-d', '--deck-name', default="TRISH", help="Name of the Anki Deck")
     parser.add_argument('-o', '--output', help="Output filename")
     parser.add_argument('-v', '--voice', default="Apple_Evan_(Enhanced)", help="Preferred TTS voice.")
@@ -121,7 +118,6 @@ def main():
     voice_string = ",".join(voice_list_arr)
 
     # 5. Define Anki Model
-    # We use a stable ID based on the Unified Deck Name
     model_id = get_stable_id(f"{deck_title}_Unified_Model_v4")
     
     css = """
@@ -144,7 +140,7 @@ def main():
             {'name': 'Answer_TTS'},       
             {'name': 'NeverMiss'},        
             {'name': 'MoreInfo'},
-            {'name': 'BlockTags'}, # Added field to potentially display tags on card
+            {'name': 'BlockTags'},
         ],
         templates=[
             {
@@ -205,21 +201,16 @@ def main():
 
     for condition_key, data in merged_data.items():
         row = data['row']
-        blocks = data['blocks'] # Set of blocks this condition belongs to
+        blocks = data['blocks'] 
         
         condition = str(row[primary_col])
         never_miss = str(row['Never Miss']) if 'Never Miss' in row else ''
         
-        # Extract More Info URL
         more_info_url = str(row['More Info']) if 'More Info' in row else ''
         if not more_info_url.strip():
             more_info_url = ''
 
-        # Prepare Block Tags
-        # e.g., ["TRISH::Blocks::MSK", "TRISH::Blocks::Fundamentals"]
         block_tags_list = [f"{base_tag_prefix}::Blocks::{clean_tag(b)}" for b in sorted(blocks)]
-        
-        # String to display on the back of card (optional)
         block_display_str = ", ".join(sorted(blocks))
 
         for col in columns:
@@ -240,12 +231,17 @@ def main():
             else:
                 prompt_html, prompt_text = f"What is the <u>{col}</u> of", f"What is the {col} of"
 
-            val_display = html.escape(val).replace('\n', '<br>')
+            # --- CHANGED HERE: Removed html.escape() for the answer field ---
+            # We assume the spreadsheet contains valid HTML (or plain text) that you want rendered as-is.
+            val_display = str(val).replace('\n', '<br>')
+            
+            # We keep escaping the condition to ensure the title isn't broken by accidental chars
             cond_display = html.escape(condition)
+            
+            # TTS cleaning still happens here, so <strong> tags won't be spoken aloud
             val_tts = clean_for_tts(val)
             cond_tts = clean_for_tts(condition)
 
-            # Apply Base Tags + Condition Tag + All Block Tags
             current_tags = block_tags_list.copy()
             current_tags.append(f"{base_tag_prefix}::Conditions::{clean_tag(condition)}")
 
@@ -256,8 +252,6 @@ def main():
                 q_tts = f"{prompt_text}: {val_tts}"
                 a_tts = cond_tts
                 
-                # GUID: Uses DeckTitle + Condition + "Presentation". 
-                # This ensures uniqueness within the Unified deck.
                 guid = genanki.guid_for(deck_title, condition, "Presentation")
                 current_tags.append(f"{base_tag_prefix}::Presentation")
 
@@ -268,14 +262,12 @@ def main():
                 q_tts = f"{prompt_text} {cond_tts}?"
                 a_tts = val_tts
 
-                # GUID: Uses DeckTitle + Condition + Col
                 guid = genanki.guid_for(deck_title, condition, col)
                 current_tags.append(f"{base_tag_prefix}::{clean_tag(col)}")
 
             if never_miss and never_miss.strip().startswith('Y'):
                 current_tags.append(f"{base_tag_prefix}::Never_Miss")
 
-            # Create Note
             note = genanki.Note(
                 model=my_model,
                 fields=[
@@ -285,7 +277,7 @@ def main():
                     a_tts, 
                     never_miss,
                     more_info_url,
-                    block_display_str # <--- Tags/Block info displayed on back
+                    block_display_str
                 ],
                 tags=current_tags,
                 guid=guid
